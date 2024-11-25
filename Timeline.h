@@ -105,8 +105,8 @@ public:
     Timeline(double tempo = 120.0, int ticksPerBeat = 480)
         : tempo(tempo), ticksPerBeat(ticksPerBeat), running(false)
     {
-        clock = std::make_shared<Clock>(tempo, ticksPerBeat);
-        clock->attachTarget([this]() { tick(); });
+        // clock = std::make_shared<Clock>(tempo, ticksPerBeat);
+        // clock->attachTarget([this]() { tick(); });
     }
 
     ~Timeline()
