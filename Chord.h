@@ -1,3 +1,5 @@
+#pragma once
+
 #include <iostream>
 #include <vector>
 #include <string>
@@ -109,13 +111,13 @@ private:
 };
 
 // Static map definition
-std::unordered_map<std::string, Chord> Chord::dict;
+// std::unordered_map<std::string, Chord> Chord::dict;
 
 
 // Define Chord objects
-Chord major({ 4, 3, 5 }, 0, "major");
-Chord minor({ 3, 4, 5 }, 0, "minor");
-Chord diminished({ 3, 3, 6 }, 0, "diminished");
-Chord augmented({ 4, 4, 4 }, 0, "augmented");
-Chord sus4({ 5, 2, 5 }, 0, "sus4");
-Chord sus2({ 7, 2, 5 }, 0, "sus2");
+// const Chord major({ 4, 3, 5 }, 0, "major");
+// const Chord minor({ 3, 4, 5 }, 0, "minor");
+// const Chord diminished({ 3, 3, 6 }, 0, "diminished");
+// const Chord augmented({ 4, 4, 4 }, 0, "augmented");
+// const Chord sus4({ 5, 2, 5 }, 0, "sus4");
+// const Chord sus2({ 7, 2, 5 }, 0, "sus2");

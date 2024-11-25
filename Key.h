@@ -34,6 +34,11 @@ public:
         return tonic == other.tonic && scale == other.scale;
     }
 
+    bool operator!=(const Key& other) const
+    {
+        return tonic != other.tonic || scale != other.scale;
+    }
+
     std::string toString() const
     {
         return "Key: " + midiToNoteName(tonic) + " " + scale->getName();
