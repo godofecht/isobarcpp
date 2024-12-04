@@ -3,7 +3,6 @@
 #include <iostream>
 #include "../Sequence.h"
 #include "../Timeline.h"
-#include "../Chord.h"
 #include "../Key.h"
 #include <vector>
 #include <stdexcept>
@@ -11,13 +10,15 @@
 //External includes
 #include "doctest.h"
 
-TEST_CASE("Key defaults") {
+TEST_CASE("Key defaults") 
+{
     Key a;
     CHECK(a.get(0) == 0);
     CHECK(a.get(1) == 2);
 }
 
-TEST_CASE("Key equality") {
+TEST_CASE("Key equality") 
+{
     Key a;
     Scale customScale({0, 2, 4, 5, 7, 9, 11}, "custom");
     Key b(0, &customScale);
@@ -31,23 +32,26 @@ TEST_CASE("Key equality") {
     CHECK(a != d);
 }
 
-TEST_CASE("Key invalid input") {
+TEST_CASE("Key invalid input") 
+{
     CHECK_THROWS_AS(Key("X", "major"), std::invalid_argument);
     CHECK_THROWS_AS(Key("H", "minor"), std::invalid_argument);
     CHECK_THROWS_AS(Key("C", "mundo"), std::invalid_argument);
 }
 
-TEST_CASE("Key get") {
+TEST_CASE("Key get") //Still need to implement the operator[]
+{
     Key a("C", "major");
-    // CHECK(a.get(0) == a[0]);
-    // CHECK(a.get(1) == a[1]);
-    // CHECK(a.get(2) == a[2]);
-    // CHECK(a.get(7) == a[7]);
-    // CHECK(a.get(-1) == a[-1]);
+    CHECK(a.get(0) == a[0]);
+    CHECK(a.get(1) == a[1]);
+    CHECK(a.get(2) == a[2]);
+    CHECK(a.get(7) == a[7]);
+    CHECK(a.get(-1) == a[-1]);
 }
 
-TEST_CASE("Key contains") {
-    Key a("C", "major");
+TEST_CASE("Key contains") 
+{
+    Key a(std::string("C"), "major");
     CHECK(a.contains(0));
     CHECK(!a.contains(1));
     CHECK(a.contains(2));
@@ -58,13 +62,15 @@ TEST_CASE("Key contains") {
     CHECK(a.contains(-1)); // Representing a rest
 }
 
-TEST_CASE("Key semitones") {
+TEST_CASE("Key semitones") 
+{
     Key a("C", "minor");
     std::vector<int> expected = {0, 2, 3, 5, 7, 8, 10};
-    CHECK(a.semitones() == expected);
+    CHECK(a.getSortedSemitones() == expected);
 }
 
-TEST_CASE("Key nearest note") {
+TEST_CASE("Key nearest note") 
+{
     Key a("C", new Scale({0, 2, 3, 5, 7, 9}));
     CHECK(a.nearestNote(-3) == -3);
     CHECK(a.nearestNote(-2) == -3);
@@ -83,19 +89,22 @@ TEST_CASE("Key nearest note") {
     CHECK(a.nearestNote(11) == 12);
 }
 
-TEST_CASE("Key distance") {
+TEST_CASE("Key distance") 
+{
     Key a("C", "minor");
     Key b("C", "major");
     CHECK(a.distance(b) == 3);
 }
 
-TEST_CASE("Key random") {
+TEST_CASE("Key random") 
+{
     Key a = Key::random();
     CHECK(a.getTonic() >= 0);
     CHECK(a.getTonic() < 12);
-    CHECK(!a.semitones().empty());
-    CHECK(a.semitones().size() <= 12);
-    for (int note : a.semitones()) {
+    CHECK(!a.getSortedSemitones().empty());
+    CHECK(a.getSortedSemitones().size() <= 12);
+    for (int note : a.getSortedSemitones()) 
+    {
         CHECK(note >= 0);
     }
 }

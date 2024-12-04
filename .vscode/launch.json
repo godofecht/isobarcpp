@@ -1,0 +1,25 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "name": "Run and Debug CTest",
+        "type": "cppvsdbg",
+        "request": "launch",
+        "program": "${workspaceFolder}/build/Debug/tests.exe",
+        "args": [],
+        "cwd": "${workspaceFolder}/build",
+        "environment": [],
+        "console": "integratedTerminal",
+        "stopAtEntry": false,  // Set true to stop at program entry point
+      }
+    ],
+    "compounds": [
+      {
+        "name": "Run and Attach Debugger",
+        "configurations": [
+          "Run and Debug CTest"
+        ]
+      }
+    ]
+  }
+  

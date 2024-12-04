@@ -12,27 +12,32 @@
 class Scale
 {
 public:
-    static std::unordered_map<std::string, Scale*>& scaleDict()
+
+    static std::unordered_map<std::string, std::shared_ptr<Scale>>& scaleDict()
     {
-        static std::unordered_map<std::string, Scale*> dict;
+        static std::unordered_map<std::string, std::shared_ptr<Scale>> dict;
+
+        // Use std::make_shared for creating and storing shared_ptr
+        if (dict.empty())
+        {
+            dict["major"] = std::make_shared<Scale>(std::vector<int>{0, 2, 4, 5, 7, 9, 11}, "major", 12);
+            dict["minor"] = std::make_shared<Scale>(std::vector<int>{0, 2, 3, 5, 7, 8, 10}, "minor", 12);
+        }
+
         return dict;
     }
 
     Scale(const std::vector<int>& semitones = {0, 2, 4, 5, 7, 9, 11},
-          const std::string& name = "unnamed scale",
+          const std::string& name = "major",
           int octaveSize = 12)
         : semitones(semitones), name(name), octaveSize(octaveSize)
     {
-        if (scaleDict().find(name) == scaleDict().end())
-        {
-            scaleDict()[name] = this;
-        }
         weights = std::vector<double>(semitones.size(), 1.0 / semitones.size());
     }
 
     ~Scale()
     {
-        scaleDict().erase(name);
+        // scaleDict().erase(name); //this is dumb.
     }
 
     std::string getName() const
@@ -96,7 +101,7 @@ public:
     {
         if (scaleDict().find(name) != scaleDict().end())
         {
-            return scaleDict()[name];
+            return scaleDict()[name].get();
         }
         throw std::invalid_argument("Unknown scale name");
     }
@@ -109,7 +114,7 @@ public:
         }
         auto it = scaleDict().begin();
         std::advance(it, randomInt(0, scaleDict().size() - 1));
-        return it->second;
+        return it->second.get();
     }
 
     int randomNote() const
@@ -125,7 +130,7 @@ public:
         std::vector<Scale*> scales;
         for (const auto& pair : scaleDict())
         {
-            scales.push_back(pair.second);
+            scales.push_back (pair.second.get());
         }
         return scales;
     }
@@ -150,48 +155,48 @@ protected:
     }
 };
 
-class WeightedScale : public Scale
-{
-public:
-    WeightedScale(const std::vector<int>& semitones = {0, 2, 4, 5, 7, 9, 11},
-                  const std::vector<double>& weights = std::vector<double>(7, 1.0 / 7),
-                  const std::string& name = "major",
-                  int octaveSize = 12)
-        : Scale(semitones, name, octaveSize)
-    {
-        this->weights = weights;
-        if (scaleDict().find(name) == scaleDict().end())
-        {
-            scaleDict()[name] = this;
-        }
-    }
+// class WeightedScale : public Scale
+// {
+// public:
+//     WeightedScale(const std::vector<int>& semitones = {0, 2, 4, 5, 7, 9, 11},
+//                   const std::vector<double>& weights = std::vector<double>(7, 1.0 / 7),
+//                   const std::string& name = "major",
+//                   int octaveSize = 12)
+//         : Scale(semitones, name, octaveSize)
+//     {
+//         this->weights = weights;
+//         if (scaleDict().find(name) == scaleDict().end())
+//         {
+//             scaleDict()[name] = this;
+//         }
+//     }
 
-    std::string toString() const
-    {
-        std::string result = name + " [ ";
-        for (size_t i = 0; i < semitones.size(); ++i)
-        {
-            result += std::to_string(semitones[i]) + "(" + std::to_string(weights[i]) + ") ";
-        }
-        result += "]";
-        return result;
-    }
+//     std::string toString() const
+//     {
+//         std::string result = name + " [ ";
+//         for (size_t i = 0; i < semitones.size(); ++i)
+//         {
+//             result += std::to_string(semitones[i]) + "(" + std::to_string(weights[i]) + ") ";
+//         }
+//         result += "]";
+//         return result;
+//     }
 
-    static WeightedScale* fromOrder(const std::vector<int>& notes, const std::string& name = "unnamed scale", int octaveSize = 12)
-    {
-        std::vector<int> normalizedNotes = notes;
-        std::for_each(normalizedNotes.begin(), normalizedNotes.end(), [octaveSize](int& note) { note %= octaveSize; });
+//     static WeightedScale* fromOrder(const std::vector<int>& notes, const std::string& name = "unnamed scale", int octaveSize = 12)
+//     {
+//         std::vector<int> normalizedNotes = notes;
+//         std::for_each(normalizedNotes.begin(), normalizedNotes.end(), [octaveSize](int& note) { note %= octaveSize; });
 
-        std::vector<double> noteWeights(notes.size());
-        std::iota(noteWeights.rbegin(), noteWeights.rend(), 1); // descending weights
-        double weightSum = std::accumulate(noteWeights.begin(), noteWeights.end(), 0.0);
-        for (auto& weight : noteWeights)
-        {
-            weight /= weightSum;
-        }
+//         std::vector<double> noteWeights(notes.size());
+//         std::iota(noteWeights.rbegin(), noteWeights.rend(), 1); // descending weights
+//         double weightSum = std::accumulate(noteWeights.begin(), noteWeights.end(), 0.0);
+//         for (auto& weight : noteWeights)
+//         {
+//             weight /= weightSum;
+//         }
 
-        return new WeightedScale(normalizedNotes, noteWeights, name, octaveSize);
-    }
-};
+//         return new WeightedScale(normalizedNotes, noteWeights, name, octaveSize);
+//     }
+// };
 
 #endif // SCALE_H

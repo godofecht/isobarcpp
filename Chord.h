@@ -8,6 +8,8 @@
 #include <algorithm>
 #include <random>
 
+namespace isobar
+{
 class Chord
 {
 public:
@@ -110,6 +112,8 @@ private:
     std::string name;           // Name of the chord
 };
 
+//%%%% SCRATCH_PAD %%%%
+
 // Static map definition
 // std::unordered_map<std::string, Chord> Chord::dict;
 
@@ -121,3 +125,6 @@ private:
 // const Chord augmented({ 4, 4, 4 }, 0, "augmented");
 // const Chord sus4({ 5, 2, 5 }, 0, "sus4");
 // const Chord sus2({ 7, 2, 5 }, 0, "sus2");
+
+    std::unordered_map<std::string, Chord> Chord::dict;
+}
