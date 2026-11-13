@@ -1,8 +1,11 @@
 cmake_minimum_required(VERSION 3.10)
 
-add_subdirectory(external/doctest)
-
 project(BasicProgram) # Set the project name
+
+# The pinned doctest asks for CMake 2.8, which CMake 4 refuses.
+# This lets its CMakeLists.txt configure under current CMake.
+set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
+add_subdirectory(external/doctest)
 add_executable(BasicProgram main.cpp) # Add the executable target (replace main.cpp with your C++ source file)
 target_link_libraries(BasicProgram PRIVATE doctest)
 
