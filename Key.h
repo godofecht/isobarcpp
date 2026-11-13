@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <random>
 #include <cmath>
+#include <limits>
 
 class Key
 {
@@ -71,7 +72,7 @@ public:
         }
 
         auto sortedSemitones = getSortedSemitones();
-        int modSemitone = semitone % scale->getOctaveSize();
+        int modSemitone = floorMod(semitone, scale->getOctaveSize());
         return std::binary_search(sortedSemitones.begin(), sortedSemitones.end(), modSemitone);
     }
 
@@ -81,7 +82,7 @@ public:
         std::vector<int> result;
         for (int semitone : scale->getSemitones())
         {
-            result.push_back((semitone + tonic) % scale->getOctaveSize());
+            result.push_back(floorMod(semitone + tonic, scale->getOctaveSize()));
         }
         std::sort(result.begin(), result.end());
         return result;
@@ -89,32 +90,41 @@ public:
 
     int nearestNote(int note) const
     {
-        if (contains(note))
+        // Work out octave and pitch class with floor division, as isobar's
+        // Python divmod does. C++ / and % round toward zero, which puts
+        // negative notes in the wrong octave.
+        const int octaveSize = scale->getOctaveSize();
+        const int octave = floorDiv(note, octaveSize);
+        const int pitch = note - octave * octaveSize;
+
+        // -1 means a rest to contains(), but here it is the note B-1, so test
+        // the pitch class directly.
+        const auto semitones = getSortedSemitones();
+        if (std::binary_search(semitones.begin(), semitones.end(), pitch))
         {
             return note;
         }
 
-        int octave = note / scale->getOctaveSize();
-        int pitch = note % scale->getOctaveSize();
-
-        int nearestSemitone = 0;
+        // Look at scale notes in this octave and the ones either side, so a
+        // pitch near the top can round up into the next octave (11 -> 12).
+        // Candidates are visited in rising order, so a tie goes to the lower note.
+        int nearest = 0;
         int nearestDistance = std::numeric_limits<int>::max();
-
-        for (int semitone : getSortedSemitones())
+        for (int offset : { -octaveSize, 0, octaveSize })
         {
-            int distance = std::abs(semitone - pitch);
-            if (distance > scale->getOctaveSize() / 2)
+            for (int semitone : semitones)
             {
-                distance = scale->getOctaveSize() - distance;
-            }
-            if (distance < nearestDistance)
-            {
-                nearestSemitone = semitone;
-                nearestDistance = distance;
+                const int candidate = semitone + offset;
+                const int distance = std::abs(candidate - pitch);
+                if (distance < nearestDistance)
+                {
+                    nearest = candidate;
+                    nearestDistance = distance;
+                }
             }
         }
 
-        return octave * scale->getOctaveSize() + nearestSemitone;
+        return octave * octaveSize + nearest;
     }
 
     std::vector<std::pair<int, int>> voiceleading(const Key& other) const
@@ -217,6 +227,18 @@ public:
 private:
     int tonic;
     Scale* scale;
+
+    // Integer division and remainder that round toward minus infinity,
+    // so floorMod(-1, 12) is 11 and floorDiv(-1, 12) is -1.
+    static int floorDiv(int a, int n)
+    {
+        return (a >= 0) ? a / n : -((-a + n - 1) / n);
+    }
+
+    static int floorMod(int a, int n)
+    {
+        return a - floorDiv(a, n) * n;
+    }
 
     static int randomInt(int min, int max)
     {
