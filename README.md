@@ -42,14 +42,11 @@ Steps:
 1. Download the code and the doctest submodule:
 
    ```bash
-   git clone https://github.com/godofecht/isobarcpp.git
+   git clone --recurse-submodules https://github.com/godofecht/isobarcpp.git
    cd isobarcpp
-   git submodule init external/doctest
-   git config submodule.external/doctest.url https://github.com/doctest/doctest.git
-   git submodule update external/doctest
    ```
 
-   The `git config` line matters. The submodule address in the repo uses SSH (`git@github.com:...`), which only works if you have an SSH key set up with GitHub. That line switches it to an HTTPS address that works for everyone.
+   If you already cloned without `--recurse-submodules`, run `git submodule update --init` inside the folder.
 
 2. Build and run the tests. These are the commands from the original README:
 
@@ -61,15 +58,13 @@ Steps:
    ctest -C Debug -V
    ```
 
-The tests do not all pass yet. When the test program runs, it ends with a summary like this:
+When the test program runs, it ends with this summary:
 
 ```text
-[doctest] test cases: 11 | 10 passed | 1 failed | 0 skipped
-[doctest] assertions: 50 | 46 passed | 4 failed |
-[doctest] Status: FAILURE!
+[doctest] test cases: 11 | 11 passed | 0 failed | 0 skipped
+[doctest] assertions: 50 | 50 passed | 0 failed |
+[doctest] Status: SUCCESS!
 ```
-
-The failing test is "Key nearest note". See "Project status".
 
 ## How it works
 
@@ -91,7 +86,7 @@ The failing test is "Key nearest note". See "Project status".
 1. Add a chord test. In `tests/test_chord.h`, check that `isobar::Chord({4, 3})` gives semitones `{0, 4, 7}`, a major triad.
 2. Add more scales to `scaleDict()` in `Scale.h`, such as the pentatonic scale `{0, 2, 4, 7, 9}`, and a test for it in `tests/test_keys.h`.
 3. Make `main.cpp` print something. Create a `PSeries(60, 2, 8)` from `Sequence.h`, call `next()` eight times, and print each value as a note name with `Note((int) value).toString()` from `Note.h`. You should see a whole-tone scale starting on C4.
-4. Fix the failing test. `Key::nearestNote` in `Key.h` gets negative notes wrong. In C++, `-1 % 12` is `-1`, while in Python (which isobar is written in) it is `11`. The function also never moves up to the next octave, so 11 should give 12 and gives 0.
+4. In C++, `-1 % 12` is `-1`, while in Python (which isobar is written in) it is `11`. `Key.h` handles this with its own `floorDiv` and `floorMod`. `Scale.h` still uses plain `%`, so `Scale::get` goes wrong for a negative degree. Write a test that shows it, then fix it the same way.
 5. Ambitious: finish `Timeline.h` so a `Timeline` owns a `Clock` and plays a pattern at a set tempo, printing each note as it plays.
 
 ## Technical details
@@ -100,20 +95,18 @@ The failing test is "Key nearest note". See "Project status".
 - `tests/main.cpp` defines `DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN`, so doctest supplies `main()`. CTest runs the test executable with `--success`, which prints passing checks as well as failing ones.
 - The code compiles as C++11. `CMakeLists.txt` does not set a C++ standard, so the compiler's default is used.
 - `CMakeLists.txt` also defines a custom target, `run`, that builds and runs `BasicProgram`.
+- The pinned doctest asks for CMake 2.8, which CMake 4 refuses. `CMakeLists.txt` sets `CMAKE_POLICY_VERSION_MINIMUM` to 3.5 before adding it, so it still configures. CMake prints a deprecation warning about doctest, which is harmless.
 - `.vscode/tasks.json` has a "Run CTest Debug" task that runs `ctest --output-on-failure --build-config Debug` from `build/`.
 
 ## Project status
 
 From the original README: "Right now, a ton of scaffolding has been written but the tests don't actually pass. The next step is to iterate through each test and debug."
 
-That is still the state of the project. The last code change was in December 2024 ("Fixed some tests -> Keys"). Known problems:
+All 11 test cases now pass. The last one to be fixed was "Key nearest note", in November 2026. The library is still scaffolding. Known problems:
 
-- One test case fails: "Key nearest note", with 4 of its 15 checks wrong.
 - "Chord Test 1" uses C `assert` instead of doctest `CHECK`, so doctest does not count its checks.
 - `Timeline` never creates its `Clock`, so calling `Timeline::start()` will crash.
 - `main.cpp` is empty, and nothing produces sound or MIDI yet.
-- `.gitmodules` still lists an old `doctest` submodule that was removed, next to the one in use at `external/doctest`.
-- `output_name.exe`, a compiled Windows program, is committed to the repo.
 
 ## Licence
 
