@@ -50,10 +50,24 @@ public:
         return octaveSize;
     }
 
+    // Integer division and remainder that round toward minus infinity, like
+    // Python's // and %. C++ / and % round toward zero, which puts negative
+    // notes and degrees in the wrong octave. floorMod(-1, 12) is 11.
+    static int floorDiv(int a, int n)
+    {
+        return (a >= 0) ? a / n : -((-a + n - 1) / n);
+    }
+
+    static int floorMod(int a, int n)
+    {
+        return a - floorDiv(a, n) * n;
+    }
+
     int get(int n) const
     {
-        int octave = n / semitones.size();
-        int degree = n % semitones.size();
+        const int size = static_cast<int>(semitones.size());
+        int octave = floorDiv(n, size);
+        int degree = floorMod(n, size);
         int semitone = semitones[degree];
         return (octaveSize * octave) + semitone;
     }
@@ -82,9 +96,9 @@ public:
 
     int indexOf(int note) const
     {
-        int octave = note / octaveSize;
-        int index = octave * semitones.size();
-        note %= octaveSize;
+        int octave = floorDiv(note, octaveSize);
+        int index = octave * static_cast<int>(semitones.size());
+        note = floorMod(note, octaveSize);
 
         auto it = std::upper_bound(semitones.begin(), semitones.end(), note);
         index += std::distance(semitones.begin(), it);
@@ -93,7 +107,7 @@ public:
 
     bool contains(int semitone) const
     {
-        semitone %= octaveSize;
+        semitone = floorMod(semitone, octaveSize);
         return std::find(semitones.begin(), semitones.end(), semitone) != semitones.end();
     }
 

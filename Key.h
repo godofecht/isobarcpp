@@ -228,17 +228,8 @@ private:
     int tonic;
     Scale* scale;
 
-    // Integer division and remainder that round toward minus infinity,
-    // so floorMod(-1, 12) is 11 and floorDiv(-1, 12) is -1.
-    static int floorDiv(int a, int n)
-    {
-        return (a >= 0) ? a / n : -((-a + n - 1) / n);
-    }
-
-    static int floorMod(int a, int n)
-    {
-        return a - floorDiv(a, n) * n;
-    }
+    static int floorDiv(int a, int n) { return Scale::floorDiv(a, n); }
+    static int floorMod(int a, int n) { return Scale::floorMod(a, n); }
 
     static int randomInt(int min, int max)
     {
