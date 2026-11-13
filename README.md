@@ -61,8 +61,8 @@ Steps:
 When the test program runs, it ends with this summary:
 
 ```text
-[doctest] test cases: 11 | 11 passed | 0 failed | 0 skipped
-[doctest] assertions: 50 | 50 passed | 0 failed |
+[doctest] test cases: 12 | 12 passed | 0 failed | 0 skipped
+[doctest] assertions: 72 | 72 passed | 0 failed |
 [doctest] Status: SUCCESS!
 ```
 
@@ -78,7 +78,7 @@ When the test program runs, it ends with this summary:
 | `Sequence.h` | Pattern types: `PSequence`, `PSeries`, `PRange`, `PGeom`, `PImpulse` and `PLoop`. |
 | `Timeline.h` | Early work on a clock and tracks for playing patterns over time. |
 | `main.cpp` | The `BasicProgram` target. It is empty for now. |
-| `tests/` | The doctest tests: `test_keys.h` and `test_chord.h`. |
+| `tests/` | The doctest tests: `test_keys.h`, `test_chord.h` and `test_scale.h`. |
 | `CMakeLists.txt` | Builds `BasicProgram` and `tests`, and registers the tests with CTest. |
 
 ## Ideas to try
@@ -86,13 +86,13 @@ When the test program runs, it ends with this summary:
 1. Add a chord test. In `tests/test_chord.h`, check that `isobar::Chord({4, 3})` gives semitones `{0, 4, 7}`, a major triad.
 2. Add more scales to `scaleDict()` in `Scale.h`, such as the pentatonic scale `{0, 2, 4, 7, 9}`, and a test for it in `tests/test_keys.h`.
 3. Make `main.cpp` print something. Create a `PSeries(60, 2, 8)` from `Sequence.h`, call `next()` eight times, and print each value as a note name with `Note((int) value).toString()` from `Note.h`. You should see a whole-tone scale starting on C4.
-4. In C++, `-1 % 12` is `-1`, while in Python (which isobar is written in) it is `11`. `Key.h` handles this with its own `floorDiv` and `floorMod`. `Scale.h` still uses plain `%`, so `Scale::get` goes wrong for a negative degree. Write a test that shows it, then fix it the same way.
-5. Ambitious: finish `Timeline.h` so a `Timeline` owns a `Clock` and plays a pattern at a set tempo, printing each note as it plays.
+4. Ambitious: finish `Timeline.h` so a `Timeline` owns a `Clock` and plays a pattern at a set tempo, printing each note as it plays.
 
 ## Technical details
 
 - Test framework: doctest 2.4.11, pinned as the submodule `external/doctest` at commit `ae7a135`.
 - `tests/main.cpp` defines `DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN`, so doctest supplies `main()`. CTest runs the test executable with `--success`, which prints passing checks as well as failing ones.
+- In C++, `-1 % 12` is `-1`, while in Python (which isobar is written in) it is `11`. `Scale.h` defines `Scale::floorDiv` and `Scale::floorMod`, which round the Python way, and `Scale` and `Key` use them for notes and degrees below 0.
 - The code compiles as C++11. `CMakeLists.txt` does not set a C++ standard, so the compiler's default is used.
 - `CMakeLists.txt` also defines a custom target, `run`, that builds and runs `BasicProgram`.
 - The pinned doctest asks for CMake 2.8, which CMake 4 refuses. `CMakeLists.txt` sets `CMAKE_POLICY_VERSION_MINIMUM` to 3.5 before adding it, so it still configures. CMake prints a deprecation warning about doctest, which is harmless.
@@ -102,7 +102,7 @@ When the test program runs, it ends with this summary:
 
 From the original README: "Right now, a ton of scaffolding has been written but the tests don't actually pass. The next step is to iterate through each test and debug."
 
-All 11 test cases now pass. The last one to be fixed was "Key nearest note", in November 2026. The library is still scaffolding. Known problems:
+All 12 test cases now pass. The last fixes, in November 2026, were for negative notes in `Key.h` and `Scale.h`. The library is still scaffolding. Known problems:
 
 - "Chord Test 1" uses C `assert` instead of doctest `CHECK`, so doctest does not count its checks.
 - `Timeline` never creates its `Clock`, so calling `Timeline::start()` will crash.
